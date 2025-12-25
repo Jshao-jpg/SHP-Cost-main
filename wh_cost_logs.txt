@@ -1,0 +1,125 @@
+[2025-12-25 10:47:27] [WH] Loaded WH workbook: D:\桌面\SCM\Ship routine and cost\Shipping route cost and LTautomatic sorting（main）\WH Cost\WH cost.xlsx
+[2025-12-25 10:47:41] [WH] ============================================================
+[2025-12-25 10:47:41] [WH] WH CALCULATION START
+[2025-12-25 10:47:41] [WH] ============================================================
+[2025-12-25 10:47:41] [WH] --- Processing SECTION 1 ---
+[2025-12-25 10:47:41] [WH]   Attempting to match inputs: {'Own': 'WAHL', '测试': '222', 'WH type': 'Import', 'Month Qty': '1'}
+[2025-12-25 10:47:41] [WH]   Available rows for Node B: 2 rows
+[2025-12-25 10:47:41] [WH]   ✓ Exact match found at Excel Row 6
+[2025-12-25 10:47:41] [WH]   Selected Node: B
+[2025-12-25 10:47:41] [WH]   Matched Excel Row: 6
+[2025-12-25 10:47:41] [WH]   Recalculating TOTAL Cost formula: =N6*L6
+[2025-12-25 10:47:41] [WH]       Formula at N6 evaluated to: 65000.0
+[2025-12-25 10:47:41] [WH]       [Formula Step] N6 -> 65000.0
+[2025-12-25 10:47:41] [WH]       Replacing L6 with User Input 'Month Qty': 1.0
+[2025-12-25 10:47:41] [WH]       [Formula Step] L6 -> 1.0
+[2025-12-25 10:47:41] [WH]   Final Calculated Result: 65000.0000
+[2025-12-25 10:47:41] [WH]   Section 1 Cost: 65000.00 HKD
+[2025-12-25 10:47:47] [WH] ============================================================
+[2025-12-25 10:47:47] [WH] WH CALCULATION START
+[2025-12-25 10:47:47] [WH] ============================================================
+[2025-12-25 10:47:47] [WH] --- Processing SECTION 1 ---
+[2025-12-25 10:47:47] [WH]   Attempting to match inputs: {'Own': 'WAHL', '测试': '222', 'WH type': 'Import', 'Month Qty': '2'}
+[2025-12-25 10:47:47] [WH]   Available rows for Node B: 2 rows
+[2025-12-25 10:47:47] [WH]   Strict match failed, trying fallback matching (ignoring numeric inputs)...
+[2025-12-25 10:47:47] [WH]   Numeric fields to ignore: ['Import Truck times', 'Export Truck times', 'pallet', 'CBM', 'Month Qty', 'total invoice value (RMB)']
+[2025-12-25 10:47:47] [WH]     Row 6: Own='WAHL'✓, 测试='222'✓, WH type='Import'✓, Month Qty=<skipped> -> MATCH
+[2025-12-25 10:47:47] [WH]   ✓ Fallback match found at Excel Row 6
+[2025-12-25 10:47:47] [WH]   Selected Node: B
+[2025-12-25 10:47:47] [WH]   Matched Excel Row: 6
+[2025-12-25 10:47:47] [WH]   Recalculating TOTAL Cost formula: =N6*L6
+[2025-12-25 10:47:47] [WH]       Formula at N6 evaluated to: 65000.0
+[2025-12-25 10:47:47] [WH]       [Formula Step] N6 -> 65000.0
+[2025-12-25 10:47:47] [WH]       Replacing L6 with User Input 'Month Qty': 2.0
+[2025-12-25 10:47:47] [WH]       [Formula Step] L6 -> 2.0
+[2025-12-25 10:47:47] [WH]   Final Calculated Result: 130000.0000
+[2025-12-25 10:47:47] [WH]   Section 1 Cost: 130000.00 HKD
+[2025-12-25 10:47:56] [WH] ============================================================
+[2025-12-25 10:47:56] [WH] WH CALCULATION START
+[2025-12-25 10:47:56] [WH] ============================================================
+[2025-12-25 10:47:56] [WH] --- Processing SECTION 1 ---
+[2025-12-25 10:47:56] [WH]   Attempting to match inputs: {'Own': 'WAHL', '测试': '222', 'WH type': 'Import', 'Month Qty': '3'}
+[2025-12-25 10:47:56] [WH]   Available rows for Node B: 2 rows
+[2025-12-25 10:47:56] [WH]   Strict match failed, trying fallback matching (ignoring numeric inputs)...
+[2025-12-25 10:47:56] [WH]   Numeric fields to ignore: ['Import Truck times', 'Export Truck times', 'pallet', 'CBM', 'Month Qty', 'total invoice value (RMB)']
+[2025-12-25 10:47:56] [WH]     Row 6: Own='WAHL'✓, 测试='222'✓, WH type='Import'✓, Month Qty=<skipped> -> MATCH
+[2025-12-25 10:47:56] [WH]   ✓ Fallback match found at Excel Row 6
+[2025-12-25 10:47:56] [WH]   Selected Node: B
+[2025-12-25 10:47:56] [WH]   Matched Excel Row: 6
+[2025-12-25 10:47:56] [WH]   Recalculating TOTAL Cost formula: =N6*L6
+[2025-12-25 10:47:56] [WH]       Formula at N6 evaluated to: 65000.0
+[2025-12-25 10:47:56] [WH]       [Formula Step] N6 -> 65000.0
+[2025-12-25 10:47:56] [WH]       Replacing L6 with User Input 'Month Qty': 3.0
+[2025-12-25 10:47:56] [WH]       [Formula Step] L6 -> 3.0
+[2025-12-25 10:47:56] [WH]   Final Calculated Result: 195000.0000
+[2025-12-25 10:47:56] [WH]   Section 1 Cost: 195000.00 HKD
+[2025-12-25 10:48:55] [WH] ============================================================
+[2025-12-25 10:48:55] [WH] WH CALCULATION START
+[2025-12-25 10:48:55] [WH] ============================================================
+[2025-12-25 10:48:55] [WH] --- Processing SECTION 1 ---
+[2025-12-25 10:48:55] [WH]   Attempting to match inputs: {'Own': 'WAHL', '测试': '333', 'WH type': 'Export', 'pallet': '10', 'CBM': '12', 'Month Qty': '2'}
+[2025-12-25 10:48:55] [WH]   Available rows for Node B: 2 rows
+[2025-12-25 10:48:55] [WH]   ✓ Exact match found at Excel Row 7
+[2025-12-25 10:48:55] [WH]   Selected Node: B
+[2025-12-25 10:48:55] [WH]   Matched Excel Row: 7
+[2025-12-25 10:48:55] [WH]   Recalculating TOTAL Cost formula: =O7*L7
+[2025-12-25 10:48:55] [WH]       Replacing J7 with User Input 'CBM': 12.0
+[2025-12-25 10:48:55] [WH]       [Formula Step] J7 -> 12.0
+[2025-12-25 10:48:55] [WH]       Formula at O7 evaluated to: 2880.0
+[2025-12-25 10:48:55] [WH]       [Formula Step] O7 -> 2880.0
+[2025-12-25 10:48:55] [WH]       Replacing L7 with User Input 'Month Qty': 2.0
+[2025-12-25 10:48:55] [WH]       [Formula Step] L7 -> 2.0
+[2025-12-25 10:48:55] [WH]   Final Calculated Result: 5760.0000
+[2025-12-25 10:48:55] [WH]       Replacing J7 with User Input 'CBM': 12.0
+[2025-12-25 10:48:55] [WH]       [Formula Step] J7 -> 12.0
+[2025-12-25 10:48:55] [WH]   Section 1 Cost: 5760.00 HKD
+[2025-12-25 10:49:09] [WH] ============================================================
+[2025-12-25 10:49:09] [WH] WH CALCULATION START
+[2025-12-25 10:49:09] [WH] ============================================================
+[2025-12-25 10:49:09] [WH] --- Processing SECTION 1 ---
+[2025-12-25 10:49:09] [WH]   Attempting to match inputs: {'Own': 'WAHL', '测试': '333', 'WH type': 'Export', 'pallet': '10', 'CBM': '120', 'Month Qty': '2'}
+[2025-12-25 10:49:09] [WH]   Available rows for Node B: 2 rows
+[2025-12-25 10:49:09] [WH]   Strict match failed, trying fallback matching (ignoring numeric inputs)...
+[2025-12-25 10:49:09] [WH]   Numeric fields to ignore: ['Import Truck times', 'Export Truck times', 'pallet', 'CBM', 'Month Qty', 'total invoice value (RMB)']
+[2025-12-25 10:49:09] [WH]     Row 6: Own='WAHL'✓, 测试: '222'≠'333'✗ -> NO MATCH
+[2025-12-25 10:49:09] [WH]     Row 7: Own='WAHL'✓, 测试='333'✓, WH type='Export'✓, pallet=<skipped>, CBM=<skipped>, Month Qty=<skipped> -> MATCH
+[2025-12-25 10:49:09] [WH]   ✓ Fallback match found at Excel Row 7
+[2025-12-25 10:49:09] [WH]   Selected Node: B
+[2025-12-25 10:49:09] [WH]   Matched Excel Row: 7
+[2025-12-25 10:49:09] [WH]   Recalculating TOTAL Cost formula: =O7*L7
+[2025-12-25 10:49:09] [WH]       Replacing J7 with User Input 'CBM': 120.0
+[2025-12-25 10:49:09] [WH]       [Formula Step] J7 -> 120.0
+[2025-12-25 10:49:09] [WH]       Formula at O7 evaluated to: 28800.0
+[2025-12-25 10:49:09] [WH]       [Formula Step] O7 -> 28800.0
+[2025-12-25 10:49:09] [WH]       Replacing L7 with User Input 'Month Qty': 2.0
+[2025-12-25 10:49:09] [WH]       [Formula Step] L7 -> 2.0
+[2025-12-25 10:49:09] [WH]   Final Calculated Result: 57600.0000
+[2025-12-25 10:49:09] [WH]       Replacing J7 with User Input 'CBM': 120.0
+[2025-12-25 10:49:09] [WH]       [Formula Step] J7 -> 120.0
+[2025-12-25 10:49:09] [WH]   Section 1 Cost: 57600.00 HKD
+[2025-12-25 10:49:19] [WH] ============================================================
+[2025-12-25 10:49:19] [WH] WH CALCULATION START
+[2025-12-25 10:49:19] [WH] ============================================================
+[2025-12-25 10:49:19] [WH] --- Processing SECTION 1 ---
+[2025-12-25 10:49:19] [WH]   Attempting to match inputs: {'Own': 'WAHL', '测试': '333', 'WH type': 'Export', 'pallet': '10', 'CBM': '1', 'Month Qty': '2'}
+[2025-12-25 10:49:19] [WH]   Available rows for Node B: 2 rows
+[2025-12-25 10:49:19] [WH]   Strict match failed, trying fallback matching (ignoring numeric inputs)...
+[2025-12-25 10:49:19] [WH]   Numeric fields to ignore: ['Import Truck times', 'Export Truck times', 'pallet', 'CBM', 'Month Qty', 'total invoice value (RMB)']
+[2025-12-25 10:49:19] [WH]     Row 6: Own='WAHL'✓, 测试: '222'≠'333'✗ -> NO MATCH
+[2025-12-25 10:49:19] [WH]     Row 7: Own='WAHL'✓, 测试='333'✓, WH type='Export'✓, pallet=<skipped>, CBM=<skipped>, Month Qty=<skipped> -> MATCH
+[2025-12-25 10:49:19] [WH]   ✓ Fallback match found at Excel Row 7
+[2025-12-25 10:49:19] [WH]   Selected Node: B
+[2025-12-25 10:49:19] [WH]   Matched Excel Row: 7
+[2025-12-25 10:49:19] [WH]   Recalculating TOTAL Cost formula: =O7*L7
+[2025-12-25 10:49:19] [WH]       Replacing J7 with User Input 'CBM': 1.0
+[2025-12-25 10:49:19] [WH]       [Formula Step] J7 -> 1.0
+[2025-12-25 10:49:19] [WH]       Formula at O7 evaluated to: 240.0
+[2025-12-25 10:49:19] [WH]       [Formula Step] O7 -> 240.0
+[2025-12-25 10:49:19] [WH]       Replacing L7 with User Input 'Month Qty': 2.0
+[2025-12-25 10:49:19] [WH]       [Formula Step] L7 -> 2.0
+[2025-12-25 10:49:20] [WH]   Final Calculated Result: 480.0000
+[2025-12-25 10:49:20] [WH]       Replacing J7 with User Input 'CBM': 1.0
+[2025-12-25 10:49:20] [WH]       [Formula Step] J7 -> 1.0
+[2025-12-25 10:49:20] [WH]   Section 1 Cost: 480.00 HKD
+[2025-12-25 11:58:28] [WH] Loaded WH workbook: D:\桌面\SCM\Ship routine and cost\Shipping route cost and LTautomatic sorting（main）\WH Cost\WH cost.xlsx
+[2025-12-25 13:09:32] [WH] Loaded WH workbook: D:\桌面\SCM\Ship routine and cost\Shipping route cost and LTautomatic sorting（main）\WH Cost\WH cost.xlsx

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logistic & SCM Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 3rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .tool-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .tool-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tool-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+
+        .tool-description {
+            color: #718096;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .tool-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.875rem 2.5rem;
+            border-radius: 2rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .tool-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Logistic & SCM Tools</h1>
+
+        <div class="tools-grid">
+            <!-- Tool 1: DHL Cost Calculator -->
+            <div class="tool-card">
+                <div class="tool-icon">🚀</div>
+                <div class="tool-title">Automatic calculation of DHL cost</div>
+                <div class="tool-description">快速计算快递运输成本</div>
+                <a href="https://costcalculate.netlify.app/" class="tool-button" target="_blank">立即使用</a>
+            </div>
+
+            <!-- Tool 2: Shipping Route Cost & LT -->
+            <div class="tool-card">
+                <div class="tool-icon">🗺️</div>
+                <div class="tool-title">Shipping Route Cost & LT</div>
+                <div class="tool-description">航线费用与时效自动分拣计算</div>
+                <a href="/route-calculator" class="tool-button">立即使用</a>
+            </div>
+
+            <!-- Tool 3: Warehouse Cost -->
+            <div class="tool-card">
+                <div class="tool-icon">🏢</div>
+                <div class="tool-title">Warehouse Cost</div>
+                <div class="tool-description">仓储费用与库存管理计算</div>
+                <a href="/warehouse-calculator" class="tool-button">立即使用</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

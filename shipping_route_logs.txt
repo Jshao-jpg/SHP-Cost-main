@@ -1,0 +1,31 @@
+[2025-12-25 11:58:28] Loaded workbook: D:\桌面\SCM\Ship routine and cost\Shipping route cost and LTautomatic sorting（main）\5.shipping cost based on summary.xlsx
+[2025-12-25 11:58:43] ============================================================
+[2025-12-25 11:58:43] CALCULATION START
+[2025-12-25 11:58:43] ============================================================
+[2025-12-25 11:58:43] 
+--- SECTION 1 ---
+[2025-12-25 11:58:43] User Selection: Node=A, Location=WADG -> Dyson MY PASIR GUDANG
+[2025-12-25 11:58:43] User Inputs: {'Truck size': '20GP', 'INCOTERMS': 'DAP  PASIR GUDANG', 'Method': 'FCL', 'SUMMARY': 'Ocean'}
+[2025-12-25 11:58:43] Using sheet: WAHL-Customer
+[2025-12-25 11:58:43] Header row: 2, MAP col: 11, From col: 2, To col: 3
+[2025-12-25 11:58:43] Looking for: From='WADG', To='Dyson MY PASIR GUDANG'
+[2025-12-25 11:58:43] EXACT MATCH found at row 11
+[2025-12-25 11:58:43] E2E Cost column: 12, E2E Lead Time column: 13
+[2025-12-25 11:58:43] Cost from row 11: 17556.3
+[2025-12-25 11:58:43] LT Row 11: 'Standard'
+[2025-12-25 11:58:43] LT Row 12: '18-21Days'
+[2025-12-25 11:58:43] Selected LT from Row 12 (date format)
+[2025-12-25 11:58:43] Final LT: '18-21Days'
+[2025-12-25 11:58:43] Breakdown columns: [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34]
+[2025-12-25 11:58:43] Base costs: 9 items
+[2025-12-25 11:58:43] Variable costs: 2 items
+[2025-12-25 11:58:43] Extracted: Cost=17556.3, LT='18-21Days'
+[2025-12-25 11:58:43]   Parsing LT: '18-21Days'
+[2025-12-25 11:58:43]     Found numbers: ['18', '21']
+[2025-12-25 11:58:43] 
+============================================================
+[2025-12-25 11:58:43] TOTAL COST: 17556.3
+[2025-12-25 11:58:43] TOTAL LT: 18-21 Days
+[2025-12-25 11:58:43] LT Components: ['18-21Days']
+[2025-12-25 11:58:43] ============================================================
+[2025-12-25 13:09:32] Loaded workbook: D:\桌面\SCM\Ship routine and cost\Shipping route cost and LTautomatic sorting（main）\5.shipping cost based on summary.xlsx
