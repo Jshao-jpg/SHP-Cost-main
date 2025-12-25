@@ -933,8 +933,8 @@ function App() {
                             )
                         })}
 
-                        <button className="add-node-btn" onClick={addNode}>
-                            <Plus size={24} />
+                        <button className="add-node-btn glass" onClick={addNode}>
+                            <Plus size={20} />
                             <span>Add Destination / Section</span>
                         </button>
                     </div >

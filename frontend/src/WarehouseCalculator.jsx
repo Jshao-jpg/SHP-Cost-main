@@ -534,22 +534,7 @@ export default function WarehouseCalculator() {
                 </button>
 
                 <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
-                    <button className="calculate-btn-premium" onClick={calculate} disabled={loading || selectedNodes.length === 0} style={{
-                        background: (loading || selectedNodes.length === 0) ? '#e2e8f0' : 'linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%)',
-                        color: (loading || selectedNodes.length === 0) ? '#94a3b8' : '#fff',
-                        padding: '1.25rem 4rem',
-                        borderRadius: '1.25rem',
-                        border: 'none',
-                        fontWeight: '900',
-                        fontSize: '1.2rem',
-                        cursor: (loading || selectedNodes.length === 0) ? 'not-allowed' : 'pointer',
-                        transition: 'all 0.4s',
-                        boxShadow: (loading || selectedNodes.length === 0) ? 'none' : '0 12px 24px -6px rgba(79, 70, 229, 0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        margin: '0 auto'
-                    }}>
+                    <button className="btn-primary" onClick={calculate} disabled={loading || selectedNodes.length === 0}>
                         {loading ? <RefreshCw className="spin" size={20} /> : <Database size={20} />}
                         {loading ? 'Calculating...' : 'Calculate Total Warehouse Cost'}
                     </button>
@@ -560,11 +545,12 @@ export default function WarehouseCalculator() {
                             flexDirection: 'column',
                             alignItems: 'center',
                             gap: '0.5rem',
-                            border: '2px solid #3b82f6',
-                            borderRadius: '1.5rem'
+                            border: '2px solid var(--primary)',
+                            borderRadius: '1.5rem',
+                            marginTop: '2rem'
                         }}>
-                            <div className="total-label" style={{ fontSize: '1.1rem', fontWeight: '800', color: '#64748b' }}>TOTAL COST (HKD)</div>
-                            <div className="total-value" style={{ fontSize: '3.5rem', fontWeight: '950', color: '#1e40af', letterSpacing: '-0.02em' }}>
+                            <div className="total-label" style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-muted)' }}>TOTAL COST (HKD)</div>
+                            <div className="total-value" style={{ fontSize: '3.5rem', fontWeight: '950', letterSpacing: '-0.02em' }}>
                                 {results.total_cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </div>
                         </div>
