@@ -516,7 +516,7 @@ export default function WarehouseCalculator() {
                                                 <div key={i} className="merged-item">
                                                     <div className="merged-label">{it.name}</div>
                                                     <div className="merged-values">
-                                                        <div className="merged-row" style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{it.row1}</div>
+                                                        <div className="merged-row" style={{ fontSize: '0.7rem' }}>{it.row1}</div>
                                                         <div className="merged-row" style={{ fontWeight: '600' }}>{it.row2}</div>
                                                     </div>
                                                 </div>
