@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import axios from 'axios'
-import { Plus, Trash2, Upload, RefreshCw, ArrowDown, FileText, ChevronDown, ChevronUp, CheckCircle, Check, Database } from 'lucide-react'
+import { Plus, Trash2, Upload, RefreshCw, ArrowDown, FileText, ChevronDown, ChevronUp, CheckCircle, Check, Database, Edit, Save } from 'lucide-react'
 
 // Reuse ComboBox from main App if possible, or define here
 function ComboBox({ value, options, onChange, placeholder }) {
@@ -103,6 +103,33 @@ export default function WarehouseCalculator() {
     const [currentFile, setCurrentFile] = useState('Built-in Template')
     const fileInputRef = useRef(null)
 
+    // Map editing states
+    const [mapEditMode, setMapEditMode] = useState(false)
+    const [draggingId, setDraggingId] = useState(null)
+    const [boxPositions, setBoxPositions] = useState(() => {
+        const saved = localStorage.getItem('wh_map_box_positions')
+        return saved ? JSON.parse(saved) : {}
+    })
+    const [boxLabels, setBoxLabels] = useState(() => {
+        const saved = localStorage.getItem('wh_map_box_labels')
+        return saved ? JSON.parse(saved) : {}
+    })
+
+    const saveMapConfig = () => {
+        localStorage.setItem('wh_map_box_positions', JSON.stringify(boxPositions))
+        localStorage.setItem('wh_map_box_labels', JSON.stringify(boxLabels))
+        setMapEditMode(false)
+        alert('地图配置已成功保存到本地缓存 ✅')
+    }
+
+    const resetMapConfig = () => {
+        if (confirm('是否重置地图布局？')) {
+            localStorage.removeItem('wh_map_box_positions')
+            localStorage.removeItem('wh_map_box_labels')
+            window.location.reload()
+        }
+    }
+
     useEffect(() => {
         fetchRoutes()
     }, [])
@@ -160,15 +187,16 @@ export default function WarehouseCalculator() {
     }, [routeOptions])
 
     const mapData = useMemo(() => {
-        // Collect all unique locations from route options
-        const allLocations = new Set()
+        // Collect all unique locations and connections
+        const allFroms = new Set()
+        const allTos = new Set()
         const connections = []
 
         Object.keys(routeOptions || {}).forEach(node => {
             const details = routeOptions[node]?.details?.[0]
             if (details) {
-                allLocations.add(details.from)
-                allLocations.add(details.to)
+                allFroms.add(details.from)
+                allTos.add(details.to)
                 connections.push({
                     node,
                     from: details.from,
@@ -177,48 +205,103 @@ export default function WarehouseCalculator() {
             }
         })
 
-        // Create boxes with dynamic positioning
-        const locationArray = Array.from(allLocations)
-        const leftCol = []
-        const rightCol = []
+        // Separate From and To locations
+        const fromLocations = Array.from(allFroms)
+        const toLocations = Array.from(allTos)
 
-        // Distribute locations into two columns
-        locationArray.forEach((loc, idx) => {
-            if (idx % 2 === 0) {
-                leftCol.push(loc)
-            } else {
-                rightCol.push(loc)
-            }
-        })
+        // Remove overlaps - locations that are both From and To should be in the middle
+        const bothLocations = fromLocations.filter(loc => toLocations.includes(loc))
+        const leftOnly = fromLocations.filter(loc => !toLocations.includes(loc))
+        const rightOnly = toLocations.filter(loc => !fromLocations.includes(loc))
 
         const boxes = []
-        const ySpacing = 100
-        const startY = 80
+        const baseSpacing = 80
+        const startY = 60
 
-        leftCol.forEach((loc, idx) => {
-            boxes.push({
-                id: loc,
-                label: loc,
-                x: 200,
-                y: startY + idx * ySpacing
-            })
+        // Sort left locations by their first To destination (to group related Froms)
+        const leftLocations = [...leftOnly, ...bothLocations]
+        leftLocations.sort((a, b) => {
+            const aFirstTo = connections.find(c => c.from === a)?.to || ''
+            const bFirstTo = connections.find(c => c.from === b)?.to || ''
+            return aFirstTo.localeCompare(bFirstTo)
         })
 
-        rightCol.forEach((loc, idx) => {
-            boxes.push({
-                id: loc,
-                label: loc,
-                x: 800,
-                y: startY + idx * ySpacing
-            })
+        // Sort right locations by their first From source (to group related Tos)
+        const rightLocations = [...rightOnly]
+        rightLocations.sort((a, b) => {
+            const aFirstFrom = connections.find(c => c.to === a)?.from || ''
+            const bFirstFrom = connections.find(c => c.to === b)?.from || ''
+            return aFirstFrom.localeCompare(bFirstFrom)
         })
 
-        // Calculate dynamic viewBox height based on content
+        // Left column (From locations)
+        let currentY = startY
+        leftLocations.forEach((loc, idx) => {
+            const customPos = boxPositions[loc]
+            // Calculate spacing based on connections from this location
+            const connectionsFromHere = connections.filter(c => c.from === loc).length
+            const spacing = baseSpacing + Math.max(0, (connectionsFromHere - 1) * 15)
+
+            boxes.push({
+                id: loc,
+                label: boxLabels[loc] || loc,
+                x: customPos?.x || 200,
+                y: customPos?.y || currentY
+            })
+
+            currentY += spacing
+        })
+
+        // Right column (To locations) - grouped by From
+        currentY = startY
+        rightLocations.forEach((loc, idx) => {
+            const customPos = boxPositions[loc]
+            // Calculate spacing based on connections to this location
+            const connectionsToHere = connections.filter(c => c.to === loc).length
+            const spacing = baseSpacing + Math.max(0, (connectionsToHere - 1) * 15)
+
+            boxes.push({
+                id: loc,
+                label: boxLabels[loc] || loc,
+                x: customPos?.x || 800,
+                y: customPos?.y || currentY
+            })
+
+            currentY += spacing
+        })
+
+        // Calculate dynamic viewBox height
         const maxY = boxes.length > 0 ? Math.max(...boxes.map(b => b.y)) : 200
-        const viewBoxHeight = maxY + 100 // Add padding at bottom
+        const viewBoxHeight = Math.max(maxY + 150, 420) // Minimum height 420, add more padding
 
         return { boxes, connections, viewBoxHeight }
-    }, [routeOptions])
+    }, [routeOptions, boxPositions, boxLabels])
+
+    // Drag handling for map editing
+    const handleMouseDown = (boxId, e) => {
+        if (!mapEditMode) return
+        e.preventDefault()
+        setDraggingId(boxId)
+    }
+
+    const handleMouseMove = (e) => {
+        if (!draggingId || !mapEditMode) return
+
+        const svg = e.currentTarget
+        const pt = svg.createSVGPoint()
+        pt.x = e.clientX
+        pt.y = e.clientY
+        const svgP = pt.matrixTransform(svg.getScreenCTM().inverse())
+
+        setBoxPositions(prev => ({
+            ...prev,
+            [draggingId]: { x: svgP.x, y: svgP.y }
+        }))
+    }
+
+    const handleMouseUp = () => {
+        setDraggingId(null)
+    }
 
     const addNode = () => {
         const newNode = {
@@ -357,13 +440,43 @@ export default function WarehouseCalculator() {
             </div>
 
             <div className="map-container glass" style={{ height: '350px', position: 'relative', marginBottom: '30px' }}>
-                <svg viewBox={`0 0 1000 ${mapData.viewBoxHeight}`} style={{ width: '100%', height: '100%' }}>
+                {/* Edit controls in bottom-right corner */}
+                <div style={{ position: 'absolute', bottom: '15px', right: '15px', zIndex: 10, display: 'flex', gap: '8px', flexDirection: 'column' }}>
+                    {mapEditMode && (
+                        <>
+                            <button className="btn-primary" onClick={saveMapConfig} style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem' }}>
+                                <Save size={16} /> 保存布局
+                            </button>
+                            <button className="btn-icon glass" onClick={resetMapConfig} style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem' }}>
+                                <RefreshCw size={16} /> 重置
+                            </button>
+                        </>
+                    )}
+                    <button
+                        onClick={() => setMapEditMode(!mapEditMode)}
+                        style={{
+                            padding: '0.4rem 0.8rem',
+                            borderRadius: '0.5rem',
+                            border: mapEditMode ? '2px solid #00d2ff' : '1px solid rgba(255, 255, 255, 0.3)',
+                            background: mapEditMode ? 'rgba(0, 210, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                            color: mapEditMode ? '#00d2ff' : '#ffffff',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            backdropFilter: 'blur(10px)'
+                        }}
+                    >
+                        {mapEditMode ? '✓ 编辑中...' : '🔒 进入编辑'}
+                    </button>
+                </div>
+                <svg viewBox={`0 0 1000 ${mapData.viewBoxHeight}`} style={{ width: '100%', height: '100%' }} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
                     <defs>
-                        <marker id="arrowhead-wh" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orientation="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" fill="rgba(255, 255, 255, 0.3)" />
+                        {/* Smaller and sharper arrow markers - matching Shipping Route style */}
+                        <marker id="arrow-wh" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                            <path d="M 0 0 L 8 4 L 0 8 Z" fill="rgba(255, 255, 255, 0.3)" />
                         </marker>
-                        <marker id="arrowhead-active-wh" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orientation="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" fill="#7CFC00" />
+                        <marker id="arrow-active-wh" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                            <path d="M 0 0 L 8 4 L 0 8 Z" fill="#7CFC00" />
                         </marker>
                     </defs>
 
@@ -376,12 +489,24 @@ export default function WarehouseCalculator() {
                         const color = isActive ? '#7CFC00' : 'rgba(255, 255, 255, 0.3)'
                         const strokeWidth = isActive ? 4 : 2.5
 
-                        // Calculate line start/end with padding
+                        // Count connections with same From to apply offset
+                        const sameFromConns = mapData.connections.filter(c => c.from === conn.from)
+                        const connIndex = sameFromConns.findIndex(c => c.node === conn.node)
+                        const offset = sameFromConns.length > 1 ? (connIndex - (sameFromConns.length - 1) / 2) * 20 : 0
+
+                        // Calculate angle from fromBox to toBox
                         const angle = Math.atan2(toBox.y - fromBox.y, toBox.x - fromBox.x)
-                        const startX = fromBox.x + Math.cos(angle) * 60
-                        const startY = fromBox.y + Math.sin(angle) * 30
-                        const endX = toBox.x - Math.cos(angle) * 70
-                        const endY = toBox.y - Math.sin(angle) * 35
+
+                        // Calculate perpendicular offset
+                        const perpAngle = angle + Math.PI / 2
+                        const offsetX = Math.cos(perpAngle) * offset
+                        const offsetY = Math.sin(perpAngle) * offset
+
+                        // Apply offset to both start and end points
+                        const startX = fromBox.x + Math.cos(angle) * 60 + offsetX
+                        const startY = fromBox.y + Math.sin(angle) * 30 + offsetY
+                        const endX = toBox.x - Math.cos(angle) * 70 + offsetX
+                        const endY = toBox.y - Math.sin(angle) * 35 + offsetY
 
                         return (
                             <g key={idx}>
@@ -390,7 +515,7 @@ export default function WarehouseCalculator() {
                                     stroke={color}
                                     strokeWidth={strokeWidth}
                                     fill="none"
-                                    markerEnd={isActive ? "url(#arrowhead-active-wh)" : "url(#arrowhead-wh)"}
+                                    markerEnd={isActive ? "url(#arrow-active-wh)" : "url(#arrow-wh)"}
                                     style={{
                                         transition: '0.3s',
                                         filter: isActive ? 'drop-shadow(0 0 15px rgba(124, 252, 0, 0.6))' : 'none'
@@ -418,7 +543,7 @@ export default function WarehouseCalculator() {
                             return conn && (conn.from === box.id || conn.to === box.id)
                         })
                         return (
-                            <g key={box.id}>
+                            <g key={box.id} onMouseDown={(e) => handleMouseDown(box.id, e)} style={{ cursor: mapEditMode ? 'move' : 'default' }}>
                                 <rect
                                     x={box.x - 60}
                                     y={box.y - 25}
@@ -426,10 +551,10 @@ export default function WarehouseCalculator() {
                                     height="50"
                                     rx="6"
                                     fill="rgba(255, 255, 255, 0.1)"
-                                    stroke={isActive ? '#7CFC00' : 'rgba(255, 255, 255, 0.3)'}
-                                    strokeWidth={isActive ? '3.5' : '2'}
+                                    stroke={isActive ? '#7CFC00' : (mapEditMode && draggingId === box.id ? '#00d2ff' : 'rgba(255, 255, 255, 0.3)')}
+                                    strokeWidth={isActive ? '3.5' : (mapEditMode ? '2.5' : '2')}
                                     style={{
-                                        transition: '0.3s',
+                                        transition: draggingId === box.id ? 'none' : '0.3s',
                                         filter: isActive ? 'drop-shadow(0 0 12px rgba(124, 252, 0, 0.8))' : 'none'
                                     }}
                                 />
@@ -441,7 +566,7 @@ export default function WarehouseCalculator() {
                                     fontSize="16"
                                     fontWeight="900"
                                     fill="#ffffff"
-                                    style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)' }}
+                                    style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)', pointerEvents: 'none' }}
                                 >
                                     {box.label}
                                 </text>
