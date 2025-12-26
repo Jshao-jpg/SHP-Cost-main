@@ -306,14 +306,20 @@ class WHExcelHandler:
         self._log(f"  Final Calculated Result: {evaluated_val:.4f}")
         
         # Build breakdown for display
-        # "把Own标题到total invoice value (RMB)标题之间有数据的列显示出来" -> These are inputs
-        # "把每一个涉及到的单元格都看一遍 ... 把费用进行列表显示的内容也需要更新"
-        # We need to show the cost items (Col 13 to 24) after recalculation
+        # Scan from column 13 (M) to the last column with content
         breakdown = {"base": [], "variable": []}
         
-        for c in range(13, 26): # Standard cost items start at Col 13
+        # Start from column 13 (standard cost items start here)
+        start_col = 13
+        # End at the last column in the worksheet
+        end_col = ws.max_column + 1
+        
+        self._log(f"  Scanning cost item columns: {start_col} to {end_col-1}")
+        
+        for c in range(start_col, end_col):
             header = ws.cell(header_row, c).value
-            if not header: continue
+            if not header or str(header).strip() == '': 
+                continue
             
             item_formula = ws_formula.cell(row, c).value
             if item_formula and isinstance(item_formula, str) and item_formula.startswith('='):
