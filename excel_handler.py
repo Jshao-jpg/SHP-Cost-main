@@ -209,8 +209,27 @@ class ExcelHandler:
                             all_lt_strings.append(str(lt_str))
                         self._log(f"Calculated (formula): Cost={cost}, LT='{lt_str}'")
                     else:
-                        self._log(f"ERROR: No match found")
-                        results.append({"node": node, "cost": 0, "lt": "", "breakdown": None, "error": f"未找到匹配: {frm_target} -> {to_target}"})
+                        # Special handling for WAHL-DGWA: try Truck times fallback
+                        if sheet_name == 'WAHL-DGWA':
+                            self._log("No partial match, trying Truck times fallback for WAHL-DGWA...")
+                            for r in range(header_row + 1, ws.max_row + 1):
+                                match_result = self._row_matches_except_truck_times(ws, r, header_row, map_col, from_col, to_col, node, frm_target, to_target, inputs)
+                                if match_result:
+                                    target_row = r
+                                    self._log(f"TRUCK TIMES FALLBACK MATCH found at row {r}")
+                                    break
+                        
+                        if target_row:
+                            # Calculate using formula with user's Truck times value
+                            cost, lt_str, breakdown, log_details = self._calculate_with_formula(ws, ws_formula, sheet_name, target_row, header_row, inputs)
+                            results.append({"node": node, "cost": cost, "lt": lt_str, "breakdown": breakdown})
+                            total_cost += cost
+                            if lt_str:
+                                all_lt_strings.append(str(lt_str))
+                            self._log(f"Calculated (Truck times fallback): Cost={cost}, LT='{lt_str}'")
+                        else:
+                            self._log(f"ERROR: No match found")
+                            results.append({"node": node, "cost": 0, "lt": "", "breakdown": None, "error": f"未找到匹配: {frm_target} -> {to_target}"})
                         
         except Exception as e:
             self._log(f"EXCEPTION: {str(e)}")
@@ -389,6 +408,86 @@ class ExcelHandler:
         
         self._log(f"  第 {r} 行部分匹配成功")
         return True
+    
+    def _row_matches_except_truck_times(self, ws, r, header_row, map_col, from_col, to_col, node, frm, to, inputs):
+        """Check if row matches, ignoring Truck times field.
+        Used for WAHL-DGWA fallback: if all other fields match but Truck times differs,
+        we can use the row's formula with user's Truck times input.
+        """
+        node_cell = ws.cell(r, map_col).value
+        if not node_cell: return False
+        if str(node_cell).strip() != node: return False
+        
+        frm_cell = ws.cell(r, from_col).value
+        if not frm_cell or str(frm_cell).strip() != frm: return False
+
+        to_cell = ws.cell(r, to_col).value
+        if not to_cell or str(to_cell).strip() != to: return False
+        
+        # Ignore these fields for this special matching
+        skip_fields = ['PALLET QTY', 'CBM', 'G/W', 'GW', 'Truck times']
+        
+        self._log(f"  检查第 {r} 行的 Truck times fallback 匹配（忽略 Truck times）")
+        
+        # Get all field columns from Excel (between 'To' and 'SUMMARY')
+        summary_col = self._get_col_by_header(ws, header_row, 'SUMMARY')
+        to_col_idx = self._get_col_by_header(ws, header_row, 'To')
+        
+        if not summary_col or not to_col_idx:
+            self._log(f"    错误：找不到 SUMMARY 或 To 列")
+            return False
+        
+        # Check if Truck times column exists and user provided input
+        truck_times_col = self._get_col_by_header(ws, header_row, 'Truck times')
+        if not truck_times_col or 'Truck times' not in inputs:
+            self._log(f"    Truck times 列不存在或用户未提供输入，无法使用此匹配")
+            return False
+        
+        # Iterate through each field column
+        for c in range(to_col_idx + 1, summary_col + 1):
+            field_header = ws.cell(header_row, c).value
+            if not field_header:
+                continue
+            
+            # Skip the special fields (including Truck times)
+            if field_header in skip_fields:
+                self._log(f"    字段 '{field_header}': 在跳过列表中，跳过")
+                continue
+            
+            # Get Excel value from row (check both merged rows)
+            excel_val = ws.cell(r, c).value
+            if excel_val is None:
+                excel_val = ws.cell(r + 1, c).value
+            
+            # Get user input value
+            user_val = inputs.get(field_header)
+            
+            # Handle SUMMARY field special conversion
+            if field_header == 'SUMMARY' and user_val:
+                user_val_converted = 'A' if user_val == 'Ocean' else ('B' if user_val == 'Air' else 'C')
+            else:
+                user_val_converted = user_val
+            
+            # Same strict matching logic as partial match
+            if not user_val or str(user_val).strip() == '':
+                if excel_val and str(excel_val).strip() not in ['', 'N/A']:
+                    self._log(f"    字段 '{field_header}': 用户未输入，Excel 为 '{excel_val}' - 失败")
+                    return False
+                else:
+                    self._log(f"    字段 '{field_header}': 用户未输入，Excel 也为空 - 跳过")
+            else:
+                if not excel_val or str(excel_val).strip() in ['', 'N/A']:
+                    self._log(f"    字段 '{field_header}': Excel 为空，但用户输入='{user_val}' - 失败")
+                    return False
+                
+                if str(excel_val).strip() != str(user_val_converted).strip():
+                    self._log(f"    字段 '{field_header}': 不匹配 - Excel='{excel_val}', 用户='{user_val}' - 失败")
+                    return False
+                else:
+                    self._log(f"    字段 '{field_header}': 匹配 - Excel='{excel_val}', 用户='{user_val}' - 成功")
+        
+        self._log(f"  第 {r} 行 Truck times fallback 匹配成功（除 Truck times 外所有字段匹配）")
+        return True
 
     def _get_col_by_header(self, ws, header_row, header_name):
         for c in range(1, ws.max_column + 1):
@@ -443,20 +542,17 @@ class ExcelHandler:
         return result
 
     def _evaluate_cell_formula(self, ws, ws_formula, formula, row, header_row, inputs, sheet_name):
-        """Evaluate a cell formula, replacing references to PALLET QTY, CBM, G/W with user inputs."""
+        """Evaluate a cell formula, replacing references to user input fields with their values."""
         if not formula or not isinstance(formula, str):
             return 0
         
         try:
-            # Get user input values
-            pallet_qty = float(inputs.get('PALLET QTY', 0) or 0)
-            cbm = float(inputs.get('CBM', 0) or 0)
-            gw = float(inputs.get('G/W', 0) or inputs.get('GW', 0) or 0)
-            
-            # Get column indices for user input fields
-            pallet_col = self._get_col_by_header(ws, header_row, 'PALLET QTY')
-            cbm_col = self._get_col_by_header(ws, header_row, 'CBM')
-            gw_col = self._get_col_by_header(ws, header_row, 'G/W')
+            # Create a mapping of column index -> field name for all input fields
+            col_to_field = {}
+            for field_name in inputs.keys():
+                col_idx = self._get_col_by_header(ws, header_row, field_name)
+                if col_idx:
+                    col_to_field[col_idx] = field_name
             
             # Simple formula parsing for common patterns like =A1*B2, =A1+B2, =A1
             formula_str = formula[1:]  # Remove leading '='
@@ -470,18 +566,31 @@ class ExcelHandler:
                 col_idx = openpyxl.utils.column_index_from_string(col_letter)
                 ref_row = int(row_num)
                 
-                # Check if this reference is to a user input column
-                if col_idx == pallet_col:
-                    val = pallet_qty
-                    self._log(f"      替换 {col_letter}{row_num} (PALLET QTY) = {val}")
-                elif col_idx == cbm_col:
-                    val = cbm
-                    self._log(f"      替换 {col_letter}{row_num} (CBM) = {val}")
-                elif col_idx == gw_col:
-                    val = gw
-                    self._log(f"      替换 {col_letter}{row_num} (G/W) = {val}")
+                # Check if this column corresponds to a user input field
+                if col_idx in col_to_field:
+                    field_name = col_to_field[col_idx]
+                    user_value = inputs.get(field_name)
+                    
+                    if user_value is not None and str(user_value).strip() != '':
+                        try:
+                            val = float(user_value)
+                            self._log(f"      替换 {col_letter}{row_num} ({field_name}) = {val} (用户输入)")
+                        except (ValueError, TypeError):
+                            # If can't convert to float, use 0
+                            val = 0
+                            self._log(f"      替换 {col_letter}{row_num} ({field_name}) = {val} (非数值)")
+                    else:
+                        # User didn't provide input, use Excel value
+                        val = ws.cell(ref_row, col_idx).value
+                        if val is None:
+                            val = 0
+                        try:
+                            val = float(val)
+                        except (ValueError, TypeError):
+                            val = 0
+                        self._log(f"      替换 {col_letter}{row_num} ({field_name}) = {val} (Excel默认值)")
                 else:
-                    # Get value from Excel
+                    # Not a user input field, get value from Excel
                     val = ws.cell(ref_row, col_idx).value
                     if val is None:
                         val = 0
@@ -489,6 +598,8 @@ class ExcelHandler:
                         val = float(val)
                     except (ValueError, TypeError):
                         val = 0
+                    header_name = ws.cell(header_row, col_idx).value
+                    self._log(f"      替换 {col_letter}{row_num} ({header_name or 'Unknown'}) = {val} (Excel值)")
                 
                 # Replace cell reference with value
                 result_str = result_str.replace(f"{col_letter}{row_num}", str(val), 1)
@@ -497,6 +608,7 @@ class ExcelHandler:
             # Only allow safe characters
             safe_chars = set('0123456789.+-*/() ')
             if all(c in safe_chars for c in result_str):
+                self._log(f"      计算表达式: {result_str}")
                 result = eval(result_str)
                 return float(result)
             else:
@@ -565,10 +677,16 @@ class ExcelHandler:
                         self._log(f"    Col {c} ({header_val}): {cell_contribution}")
                     total_cost += cell_contribution
         else:
-            # Fallback to direct value
-            total_cost = ws.cell(row, e2e_cost_col).value or 0
-            if not total_cost:
-                total_cost = ws.cell(row + 1, e2e_cost_col).value or 0
+            # Handle non-SUM formulas (like =D15*N15)
+            if formula and isinstance(formula, str) and formula.startswith('='):
+                self._log(f"Evaluating non-SUM formula: {formula}")
+                total_cost = self._evaluate_cell_formula(ws, ws_formula, formula, row, header_row, inputs, sheet_name)
+                self._log(f"Formula result: {total_cost}")
+            else:
+                # Fallback to direct value
+                total_cost = ws.cell(row, e2e_cost_col).value or 0
+                if not total_cost:
+                    total_cost = ws.cell(row + 1, e2e_cost_col).value or 0
         
         self._log(f"Total calculated cost: {total_cost}")
         
