@@ -1053,7 +1053,10 @@ function App() {
                                             <div key={idx} className="section-status-item">
                                                 <span style={{ fontWeight: 600 }}>Section {idx + 1} ({nr.node}):</span>
                                                 {nr.cost > 0 ? (
-                                                    <span className="status-success">✓ 成功 - HKD {nr.cost.toLocaleString()}</span>
+                                                    <span className="status-success">
+                                                        ✓ 成功 - HKD {nr.cost.toLocaleString()}
+                                                        {nr.lt && <span style={{ marginLeft: '1.5rem' }}>{nr.lt}</span>}
+                                                    </span>
                                                 ) : (
                                                     <>
                                                         <span className="status-fail">✗ 失败</span>
