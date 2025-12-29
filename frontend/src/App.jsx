@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import axios from 'axios'
-import { Plus, Trash2, Upload, RefreshCw, ArrowDown, FileText, ChevronDown, ChevronUp, CheckCircle, Check, Database, Ship } from 'lucide-react'
+import { Plus, Trash2, Upload, RefreshCw, ArrowDown, FileText, ChevronDown, ChevronUp, CheckCircle, Check, Database, Ship, Download } from 'lucide-react'
+import * as XLSX from 'xlsx'
 import './index.css'
 import WarehouseCalculator from './WarehouseCalculator'
 
@@ -395,6 +396,102 @@ function App() {
         const idx = newNodes.findIndex(n => n.id === nodeId)
         newNodes[idx].inputs[fieldName] = value
         setSelectedNodes(newNodes)
+    }
+
+    const exportToCSV = () => {
+        const now = new Date()
+        const timestamp = now.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        })
+
+        // Create workbook
+        const wb = XLSX.utils.book_new()
+
+        // Data array for sheet
+        const data = []
+        data.push(['Shipping Route E2E Cost Report'])
+        data.push(['Export Time', timestamp])
+        data.push([])
+
+        // Section data
+        selectedNodes.forEach((node, index) => {
+            data.push([`Section ${index + 1}`])
+            data.push(['NODE', node.node || ''])
+
+            // From → To (use location which stores the full route)
+            if (node.location) {
+                data.push(['From → To', node.location])
+            }
+
+            data.push([])
+            data.push(['Input Fields'])
+            Object.entries(node.inputs).forEach(([key, value]) => {
+                data.push([key, value])
+            })
+
+            if (node.breakdown) {
+                data.push([])
+                data.push(['Cost Breakdown'])
+
+                // Basic Fees (stored as 'base' in breakdown)
+                if (node.breakdown.base && node.breakdown.base.length > 0) {
+                    data.push(['Basic Fees'])
+                    let basicTotal = 0
+                    node.breakdown.base.forEach(item => {
+                        // Export: Column1=Name, Column2=Row1(Baseline), Column3=Row2(Actual)
+                        data.push([item.name, item.row1, item.row2])
+                        const numValue = parseFloat(item.row2)  // Subtotal uses row2
+                        if (!isNaN(numValue)) basicTotal += numValue
+                    })
+                    data.push(['Basic Fees Subtotal', '', basicTotal.toFixed(2)])
+                    data.push([])
+                }
+
+                // Variable Fees (stored as 'variable' in breakdown)
+                if (node.breakdown.variable && node.breakdown.variable.length > 0) {
+                    data.push(['Variable Fees'])
+                    let variableTotal = 0
+                    node.breakdown.variable.forEach(item => {
+                        // Export: Column1=Name, Column2=Row1(Baseline), Column3=Row2(Actual)
+                        data.push([item.name, item.row1, item.row2])
+                        const numValue = parseFloat(item.row2)  // Subtotal uses row2
+                        if (!isNaN(numValue)) variableTotal += numValue
+                    })
+                    data.push(['Variable Fees Subtotal', '', variableTotal.toFixed(2)])
+                }
+            }
+
+            if (node.e2e_cost !== undefined) {
+                data.push(['Section E2E Cost (HKD)', node.e2e_cost.toFixed(2)])
+            }
+
+            if (node.e2e_lt !== undefined && node.e2e_lt !== null) {
+                data.push(['Section E2E Lead Time', node.e2e_lt])
+            }
+
+            data.push([])
+        })
+
+        // Total
+        data.push([])
+        if (results && results.total_cost !== undefined) {
+            data.push(['AGGREGATED TOTAL E2E COST (HKD)', results.total_cost.toFixed(2)])
+        }
+        if (results && results.total_lt !== undefined && results.total_lt !== null) {
+            data.push(['TOTAL E2E LEAD TIME', results.total_lt])
+        }
+
+        // Create worksheet
+        const ws = XLSX.utils.aoa_to_sheet(data)
+        XLSX.utils.book_append_sheet(wb, ws, 'Shipping Route Report')
+
+        // Download
+        XLSX.writeFile(wb, `Shipping_Route_Report_${now.toISOString().slice(0, 19).replace(/:/g, '-')}.xlsx`)
     }
 
     const handleFileUpload = async (event) => {
@@ -981,6 +1078,41 @@ function App() {
                             </div>
                         )
                     }
+
+                    {results && results.total_cost !== undefined && (
+                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem' }}>
+                            <button
+                                onClick={exportToCSV}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.75rem 1.5rem',
+                                    fontSize: '0.95rem',
+                                    fontWeight: '600',
+                                    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                                    color: '#5b5fc7',
+                                    border: '2px solid rgba(99, 102, 241, 0.5)',
+                                    borderRadius: '0.5rem',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.15)'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.backgroundColor = 'rgba(99, 102, 241, 0.25)'
+                                    e.target.style.borderColor = 'rgba(99, 102, 241, 0.7)'
+                                    e.target.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.25)'
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.backgroundColor = 'rgba(99, 102, 241, 0.15)'
+                                    e.target.style.borderColor = 'rgba(99, 102, 241, 0.5)'
+                                    e.target.style.boxShadow = '0 2px 8px rgba(99, 102, 241, 0.15)'
+                                }}
+                            >
+                                <Download size={18} /> 导出以上数据到Excel (.xlsx)
+                            </button>
+                        </div>
+                    )}
                 </>
             )}
         </div>

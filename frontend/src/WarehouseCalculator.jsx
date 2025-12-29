@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import axios from 'axios'
-import { Plus, Trash2, Upload, RefreshCw, ArrowDown, FileText, ChevronDown, ChevronUp, CheckCircle, Check, Database, Edit, Save } from 'lucide-react'
+import { Plus, Trash2, Upload, RefreshCw, ArrowDown, FileText, ChevronDown, ChevronUp, CheckCircle, Check, Database, Edit, Save, Download } from 'lucide-react'
+import * as XLSX from 'xlsx'
 
 // Reuse ComboBox from main App if possible, or define here
 function ComboBox({ value, options, onChange, placeholder }) {
@@ -144,6 +145,70 @@ export default function WarehouseCalculator() {
         }
     }
 
+    const exportToCSV = () => {
+        const now = new Date()
+        const timestamp = now.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        })
+
+        // Create workbook
+        const wb = XLSX.utils.book_new()
+
+        // Data array for sheet
+        const data = []
+        data.push(['Warehouse Cost Calculation Report'])
+        data.push(['Export Time', timestamp])
+        data.push([])
+
+        // Section data
+        selectedNodes.forEach((node, index) => {
+            data.push([`Section ${index + 1}`])
+            data.push(['NODE', node.node || ''])
+
+            // From → To (use location which stores the full route)
+            if (node.location) {
+                data.push(['From → To', node.location])
+            }
+
+            data.push([])
+            data.push(['Input Fields'])
+            Object.entries(node.inputs).forEach(([key, value]) => {
+                data.push([key, value])
+            })
+
+            if (node.breakdown) {
+                data.push([])
+                data.push(['Cost Items'])
+                node.breakdown.base.forEach(item => {
+                    data.push([item.name, item.row1, item.row2])
+                })
+            }
+
+            if (node.total_cost !== undefined) {
+                data.push(['Section Total (HKD)', node.total_cost.toFixed(2)])
+            }
+            data.push([])
+        })
+
+        // Total
+        if (results && results.total_cost !== undefined) {
+            data.push([])
+            data.push(['TOTAL COST (HKD)', results.total_cost.toFixed(2)])
+        }
+
+        // Create worksheet
+        const ws = XLSX.utils.aoa_to_sheet(data)
+        XLSX.utils.book_append_sheet(wb, ws, 'WH Cost Report')
+
+        // Download
+        XLSX.writeFile(wb, `WH_Cost_Report_${now.toISOString().slice(0, 19).replace(/:/g, '-')}.xlsx`)
+    }
+
     const handleFileUpload = async (event) => {
         const file = event.target.files[0]
         if (!file) return
@@ -234,45 +299,50 @@ export default function WarehouseCalculator() {
             return aFirstFrom.localeCompare(bFirstFrom)
         })
 
-        // Left column (From locations)
+        // First pass: Layout left column (From locations) with fixed spacing
         let currentY = startY
-        leftLocations.forEach((loc, idx) => {
+        const leftPositions = {}
+        const nodeSpacing = 90  // Fixed spacing between all nodes
+
+        leftLocations.forEach((loc) => {
             const customPos = boxPositions[loc]
-            // Calculate spacing based on connections from this location
-            const connectionsFromHere = connections.filter(c => c.from === loc).length
-            const spacing = baseSpacing + Math.max(0, (connectionsFromHere - 1) * 15)
+            leftPositions[loc] = customPos?.y || currentY
 
             boxes.push({
                 id: loc,
                 label: boxLabels[loc] || loc,
                 x: customPos?.x || 200,
-                y: customPos?.y || currentY
+                y: leftPositions[loc]
             })
 
-            currentY += spacing
+            currentY += nodeSpacing
         })
 
-        // Right column (To locations) - grouped by From
+        // Second pass: Layout right column (To locations) with sequential fixed spacing
+        const rightPositions = {}
         currentY = startY
-        rightLocations.forEach((loc, idx) => {
+
+        rightLocations.forEach((loc) => {
             const customPos = boxPositions[loc]
-            // Calculate spacing based on connections to this location
-            const connectionsToHere = connections.filter(c => c.to === loc).length
-            const spacing = baseSpacing + Math.max(0, (connectionsToHere - 1) * 15)
+            rightPositions[loc] = customPos?.y || currentY
 
             boxes.push({
                 id: loc,
                 label: boxLabels[loc] || loc,
                 x: customPos?.x || 800,
-                y: customPos?.y || currentY
+                y: rightPositions[loc]
             })
 
-            currentY += spacing
+            if (!customPos?.y) {
+                currentY += nodeSpacing
+            }
         })
+
+        // Note: Centering disabled to prevent stacking - users can manually position nodes
 
         // Calculate dynamic viewBox height
         const maxY = boxes.length > 0 ? Math.max(...boxes.map(b => b.y)) : 200
-        const viewBoxHeight = Math.max(maxY + 150, 420) // Minimum height 420, add more padding
+        const viewBoxHeight = Math.max(maxY + 150, 420)
 
         return { boxes, connections, viewBoxHeight }
     }, [routeOptions, boxPositions, boxLabels])
@@ -681,6 +751,41 @@ export default function WarehouseCalculator() {
                         </div>
                     )}
                 </div>
+
+                {results && results.total_cost !== undefined && (
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem' }}>
+                        <button
+                            onClick={exportToCSV}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.75rem 1.5rem',
+                                fontSize: '0.95rem',
+                                fontWeight: '600',
+                                backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                                color: '#5b5fc7',
+                                border: '2px solid rgba(99, 102, 241, 0.5)',
+                                borderRadius: '0.5rem',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 2px 8px rgba(99, 102, 241, 0.15)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.backgroundColor = 'rgba(99, 102, 241, 0.25)'
+                                e.target.style.borderColor = 'rgba(99, 102, 241, 0.7)'
+                                e.target.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.25)'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.backgroundColor = 'rgba(99, 102, 241, 0.15)'
+                                e.target.style.borderColor = 'rgba(99, 102, 241, 0.5)'
+                                e.target.style.boxShadow = '0 2px 8px rgba(99, 102, 241, 0.15)'
+                            }}
+                        >
+                            <Download size={18} /> 导出以上数据到Excel (.xlsx)
+                        </button>
+                    </div>
+                )}
             </div>
 
             {showLogs && logs.length > 0 && (
